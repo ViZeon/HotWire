@@ -165,3 +165,22 @@ if action == "Modified" {
 	if t != nil {
 		thread.start(t)
 	}
+
+
+
+if action == "Modified" {
+    fmt.println("--> Attempting to build...")
+    
+    // Make sure to put your actual script name here!
+    p, err := os.process_start({command = {"sh", "./build_linux.sh"}})
+
+    if err != nil {
+        fmt.println("--> BUILD ERROR:", err)
+    } else {
+        // The _, _ = tells Odin it's okay to ignore the results
+        _, _ = os.process_wait(p) 
+        fmt.println("--> Build finished!")
+    }
+    
+    sync.atomic_store(&should_reload, true)
+}

@@ -1,30 +1,57 @@
 
 package watcher
 
+import "core:fmt"
 import "core:os"
 import "core:sys/linux"
 import "core:sys/windows"
 
 // Callback receives: action "Modified", "Created", "Deleted" and file name (just the name, not full path)
- when ODIN_OS == .Linux {
-    watch_directory :: proc(dir_path: cstring, callback: proc(action: string, file: string)) {
-   
-        fd, _ := linux.inotify_init()
-        linux.inotify_add_watch(fd, dir_path, transmute(bit_set[linux.Inotify_Event_Bits;u32])u32(0x00000002 | 0x00000100 | 0x00000200))
-        buf: [1024]u8
-        for {
-            n, _ := linux.read(fd, buf[:])
-            offset: u32 = 0
-            for offset < u32(n) {
-                ev := cast(^linux.Inotify_Event)&buf[offset]
-                mask := u32(transmute(u32)ev.mask)
-                act := "Modified" if mask & 0x02 != 0 else "Created" if mask & 0x100 != 0 else "Deleted"
-                if ev.len > 0 {
-                    name := string(cast(cstring)&buf[offset + size_of(linux.Inotify_Event)])
-                    callback(act, name)
+    when ODIN_OS == .Linux {
+        watch_dir :: proc(path: cstring) {
+            fd, _ := linux.inotify_init()
+
+            IN_MODIFY :: 0x00000002
+            IN_CREATE :: 0x00000100
+            IN_DELETE :: 0x00000200
+
+            mask := transmute(bit_set[linux.Inotify_Event_Bits;u32])(u32(
+                    IN_CREATE | IN_DELETE | IN_MODIFY,
+                ))
+            linux.inotify_add_watch(fd, path, mask)
+
+            buffer: [1024]u8
+            fmt.println("Watching directory (Linux) in background...")
+
+            for {
+                n, _ := linux.read(fd, buffer[:])
+                if n <= 0 do continue
+
+                // Parse the buffer
+                offset: u32 = 0
+                for offset < u32(n) {
+                    // Cast the current position in the buffer to an Inotify_Event pointer
+                    event := cast(^linux.Inotify_Event)&buffer[offset]
+
+                    // Determine the action
+                    action := "Unknown"
+                    event_mask := u32(transmute(u32)event.mask)
+                    if (event_mask & IN_MODIFY) != 0 do action = "Modified"
+                    else if (event_mask & IN_CREATE) != 0 do action = "Created"
+                    else if (event_mask & IN_DELETE) != 0 do action = "Deleted"
+
+                    // Extract the file name (if one exists)
+                    if event.len > 0 {
+                        // The name starts immediately after the struct
+                        name_ptr := cast(cstring)&buffer[offset + size_of(linux.Inotify_Event)]
+                        fmt.printf("[%s] %s\n", action, name_ptr)
+
+
+                    }
+
+                    // Move to the next event in the buffer
+                    offset += size_of(linux.Inotify_Event) + event.len
                 }
-                offset += size_of(linux.Inotify_Event) + ev.len
             }
         }
     }
-}
