@@ -47,8 +47,8 @@ when ODIN_OS == .Windows {
                 case windows.FILE_ACTION_ADDED:             action = .Created
                 case windows.FILE_ACTION_REMOVED:           action = .Deleted
                 case windows.FILE_ACTION_MODIFIED:          action = .Modified
-                case windows.FILE_ACTION_RENAMED_OLD_NAME,
-                     windows.FILE_ACTION_RENAMED_NEW_NAME:  action = .Modified
+                case windows.FILE_ACTION_RENAMED_OLD_NAME:  action = .RenamedFrom
+                case windows.FILE_ACTION_RENAMED_NEW_NAME:  action = .RenamedTo
                     // Treat renames as modifications or ignore; here we skip
                     continue
                 }

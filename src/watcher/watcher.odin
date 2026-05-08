@@ -9,6 +9,8 @@ Action :: enum {
     Modified,
     Created,
     Deleted,
+    RenamedFrom,
+    RenamedTo,
 }
 
 
