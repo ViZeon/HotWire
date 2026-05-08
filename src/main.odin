@@ -138,6 +138,28 @@ main :: proc() {
 	context.logger = log.create_console_logger()
 	log.debug("Hello")
 
+//t: thread
+t :=thread.create(proc(t: ^thread.Thread) {
+    watcher.watch_directory(".", proc(action, file: string) {
+        fmt.printf("[%s] %s\n", action, file)
+        // set should_reload = true etc.
+    })
+})
+thread.start(t)
+
+	// 2. Create and start the background thread
+	t := thread.create(watcher_thread_proc)
+	if t != nil {
+		thread.start(t)
+	}
+
+
+	// 1. Create a wrapper procedure that matches what Odin's thread system expects
+	watcher_thread_proc :: proc(t: ^thread.Thread) {
+		watch_dir(".")
+
+	}
+
 
 	SDLwindow()
 
@@ -171,3 +193,9 @@ main :: proc() {
 	}
 
 }
+
+
+// Next:
+// - split method to load libraries, and make it handled for a list of libraries by hot reload
+// - unify and store hot reload watching into a list, make a function to handle it
+// - make a function to execute build scripts, also split by OS
