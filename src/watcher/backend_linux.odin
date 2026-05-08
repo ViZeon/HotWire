@@ -3,7 +3,6 @@ package watcher
 import "core:fmt"
 import "core:os"
 import "core:sys/linux"
-import "core:sys/windows"
 
 when ODIN_OS == .Linux {
         watch_dir :: proc(path: cstring) {
