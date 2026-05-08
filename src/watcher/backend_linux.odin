@@ -1,4 +1,3 @@
-
 package watcher
 
 import "core:fmt"
@@ -6,8 +5,7 @@ import "core:os"
 import "core:sys/linux"
 import "core:sys/windows"
 
-// Callback receives: action "Modified", "Created", "Deleted" and file name (just the name, not full path)
-    when ODIN_OS == .Linux {
+when ODIN_OS == .Linux {
         watch_dir :: proc(path: cstring) {
             fd, _ := linux.inotify_init()
 
@@ -34,19 +32,19 @@ import "core:sys/windows"
                     event := cast(^linux.Inotify_Event)&buffer[offset]
 
                     // Determine the action
-                    action := "Unknown"
+                    action : Action
                     event_mask := u32(transmute(u32)event.mask)
-                    if (event_mask & IN_MODIFY) != 0 do action = "Modified"
-                    else if (event_mask & IN_CREATE) != 0 do action = "Created"
-                    else if (event_mask & IN_DELETE) != 0 do action = "Deleted"
+                    switch {
+                    case (event_mask & IN_MODIFY) != 0: action = .Modified
+                    case (event_mask & IN_CREATE) != 0:  action = .Created
+                    case (event_mask & IN_DELETE) != 0:  action = .Deleted
+                    }
 
                     // Extract the file name (if one exists)
                     if event.len > 0 {
                         // The name starts immediately after the struct
                         name_ptr := cast(cstring)&buffer[offset + size_of(linux.Inotify_Event)]
                         fmt.printf("[%s] %s\n", action, name_ptr)
-
-
                     }
 
                     // Move to the next event in the buffer
