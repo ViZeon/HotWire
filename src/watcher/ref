@@ -184,3 +184,15 @@ if action == "Modified" {
     
     sync.atomic_store(&should_reload, true)
 }
+
+
+
+
+IN_MOVED_FROM :: 0x00000040
+IN_MOVED_TO   :: 0x00000080
+
+mask := transmute(...)(u32(IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO))
+
+// In the switch:
+case (event_mask & IN_MOVED_FROM) != 0: action = .Modified  // or a new .Renamed
+case (event_mask & IN_MOVED_TO) != 0:   action = .Modified

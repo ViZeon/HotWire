@@ -149,7 +149,7 @@ main :: proc() {
 
 	// 1. Create a wrapper procedure that matches what Odin's thread system expects
 	watcher_thread_proc :: proc(t: ^thread.Thread) {
-		watcher.watch_dir(".")
+		watcher.watch_dir("./src/reloadable")
 
 	}
 

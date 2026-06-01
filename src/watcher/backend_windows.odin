@@ -4,10 +4,7 @@ package watcher
 import "core:fmt"
 import "core:os"
 import "core:sys/windows"
-
-// Callback receives: action "Modified", "Created", "Deleted" and file name (just the name, not full path)
-// watcher_windows.odin
-
+ 
 when ODIN_OS == .Windows {
     watch_dir :: proc(path: string) {
         dir_handle := windows.CreateFileA(
