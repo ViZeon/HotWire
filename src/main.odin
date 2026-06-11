@@ -34,7 +34,7 @@ Library :: struct {
 }
 
 
-should_reload: b32
+should_reload: bool
 
 
 update_fps :: proc() {
@@ -149,7 +149,7 @@ main :: proc() {
 
 	// 1. Create a wrapper procedure that matches what Odin's thread system expects
 	watcher_thread_proc :: proc(t: ^thread.Thread) {
-		watcher.watch_dir("./src/reloadable")
+		watcher.watch_dir("./src/reloadable", &should_reload)
 
 	}
 
@@ -168,6 +168,7 @@ main :: proc() {
 			sync.atomic_store(&should_reload, false)
 			log.info("Hot reload triggered")
 			load_library(&lib)
+			lib.odin_online()
 		}
 
 		ev: SDL.Event
@@ -192,3 +193,5 @@ main :: proc() {
 // - split method to load libraries, and make it handled for a list of libraries by hot reload
 // - unify and store hot reload watching into a list, make a function to handle it
 // - make a function to execute build scripts, also split by OS
+
+// - usage should be one function supplying a pointer to the directory, should support sub-directories and multiples packages

@@ -5,8 +5,9 @@ import "core:os"
 import "core:sys/linux"
 
 when ODIN_OS == .Linux {
-        watch_dir :: proc(path: cstring) {
+        watch_dir :: proc(path: cstring, file_updated: ^bool) {
             fd, _ := linux.inotify_init()
+            file_updated^ = false
 
             IN_MODIFY :: 0x00000002
             IN_CREATE :: 0x00000100
@@ -49,11 +50,31 @@ when ODIN_OS == .Linux {
                         // The name starts immediately after the struct
                         name_ptr := cast(cstring)&buffer[offset + size_of(linux.Inotify_Event)]
                         fmt.printf("[%s] %s\n", action, name_ptr)
+                        file_updated^ = true
                     }
 
                     // Move to the next event in the buffer
                     offset += size_of(linux.Inotify_Event) + event.len
                 }
             }
+        }
+    }
+
+
+
+
+
+    lib_update:: proc() {
+        // Linux: load a copy so the build can overwrite lib.so
+
+        tmp := fmt.tprintf("lib_{}.so", lib_counter)
+        lib_counter += 1
+        if data, ok := os.read_entire_file(path); ok {
+            os.write_entire_file(tmp, data, true)
+            delete(data)
+            path = tmp
+        } else {
+            log.error("Failed to read lib.so for copy")
+            return false
         }
     }
