@@ -58,18 +58,18 @@ when ODIN_OS == .Linux {
                 }
             }
         }
-    }
+   
 
 
 
 
 
-    lib_update:: proc() {
+    lib_update:: proc(lib_counter: ^int, path: string) {
         // Linux: load a copy so the build can overwrite lib.so
 
         tmp := fmt.tprintf("lib_{}.so", lib_counter)
-        lib_counter += 1
-        if data, ok := os.read_entire_file(path); ok {
+        lib_counter^ += 1
+        if data, ok := os.read_entire_file_from_path(path); ok {
             os.write_entire_file(tmp, data, true)
             delete(data)
             path = tmp
@@ -78,3 +78,4 @@ when ODIN_OS == .Linux {
             return false
         }
     }
+}
