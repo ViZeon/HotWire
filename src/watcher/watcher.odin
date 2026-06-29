@@ -32,10 +32,10 @@ lib_update :: proc(/*lib_counter: ^int,*/ path: string) {
 
 
     // Get the directory containing the file
-    dir := filepath.dir(path)           // "/home/user/projects/myapp/src"
+    //dir := filepath.dir(path)           // "/home/user/projects/myapp/src"
 
     // Get the last folder name
-    lib_name:= filepath.base(path)    // "src"
+    lib_name:=  folder_name_last(path) //filepath.base(path)    // "src"
     ext:= lib_extension()
     lib_name = strings.concatenate({lib_name,ext})
 	// Linux: load a copy so the build can overwrite lib.so
@@ -58,3 +58,16 @@ lib_compile :: proc() {
 	//compile_command := fmt.tprintf("odin build hotcode/%v.odin -build-mode:dll -out:hotcode/%v -file", hl.name, hl.dirs[hl.idx])
 }
 // Callback receives: action "Modified", "Created", "Deleted" and file name (just the name, not full path)
+
+
+folder_name_last :: proc(path: string) -> string {
+    // Strip trailing slashes so base() works correctly
+    clean := strings.trim_right(path, "/\\")
+    
+    // If path ends with a filename (has extension), go up one level
+    if filepath.ext(clean) != "" {
+        clean = filepath.dir(clean)
+    }
+    
+    return filepath.base(clean)
+}
