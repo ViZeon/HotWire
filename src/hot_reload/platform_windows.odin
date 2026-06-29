@@ -1,5 +1,5 @@
 
-package watcher
+package hot_reload
 
 import "core:fmt"
 import "core:os"
@@ -17,7 +17,7 @@ when ODIN_OS == .Windows {
             nil,
         )
 
-        buffer: [1024]u32
+        buffer: [dynamic]u32
         bytes_returned: u32
 
         for {

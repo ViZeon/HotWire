@@ -10,7 +10,7 @@ import "core:strings"
 import "core:os"
 
 
-import "watcher"
+import "hot_reload"
 import SDL "vendor:sdl3"
 
 WIDTH :: 1280

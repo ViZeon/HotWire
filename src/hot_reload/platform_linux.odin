@@ -1,4 +1,4 @@
-package watcher
+package hot_reload
 
 import "core:strings"
 import "core:fmt"

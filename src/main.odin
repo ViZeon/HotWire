@@ -1,6 +1,6 @@
 package main
 
-import "watcher"
+import "hot_reload"
 import SDL "vendor:sdl3"
 
 
@@ -26,7 +26,7 @@ main :: proc() {
 
 	// 1. Create a wrapper procedure that matches what Odin's thread system expects
 	watcher_thread_proc :: proc(t: ^thread.Thread) {
-		watcher.hot_reload("./src/reloadable", &should_reload)
+		hot_reload.watch("./src/reloadable", &should_reload)
 
 	}
 
@@ -72,3 +72,10 @@ main :: proc() {
 // - make a function to execute build scripts, also split by OS
 
 // - usage should be one function supplying a pointer to the directory, should support sub-directories and multiples packages
+
+
+
+// - can now detect library name from folder name
+// - use folder name to compile library
+// - use folder name to load library
+// - move threading funcs to hot reload
