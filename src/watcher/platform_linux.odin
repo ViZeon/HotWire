@@ -1,11 +1,12 @@
 package watcher
 
+import "core:strings"
 import "core:fmt"
 import "core:os"
 import "core:sys/linux"
 
 when ODIN_OS == .Linux {
-	platform_watch_dir :: proc(path: cstring, file_updated: ^bool) {
+	platform_watch_dir :: proc(path: string, file_updated: ^bool) {
 		fd, _ := linux.inotify_init()
 		file_updated^ = false
 
@@ -19,7 +20,7 @@ when ODIN_OS == .Linux {
 		mask := transmute(bit_set[linux.Inotify_Event_Bits;u32])(u32(
 				IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO,
 			))
-		linux.inotify_add_watch(fd, path, mask)
+		linux.inotify_add_watch(fd, strings.clone_to_cstring(path), mask)
 
 		buffer: [dynamic]u8
 		fmt.println("Watching directory (Linux) in background...")
@@ -59,6 +60,8 @@ when ODIN_OS == .Linux {
 		}
 	}
 
-
+lib_extension :: proc () -> string{
+	return ".so"
+}
 
 }
