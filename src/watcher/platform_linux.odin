@@ -5,7 +5,7 @@ import "core:os"
 import "core:sys/linux"
 
 when ODIN_OS == .Linux {
-	watch_dir :: proc(path: cstring, file_updated: ^bool) {
+	platform_watch_dir :: proc(path: cstring, file_updated: ^bool) {
 		fd, _ := linux.inotify_init()
 		file_updated^ = false
 
@@ -21,7 +21,7 @@ when ODIN_OS == .Linux {
 			))
 		linux.inotify_add_watch(fd, path, mask)
 
-		buffer: [1024]u8
+		buffer: [dynamic]u8
 		fmt.println("Watching directory (Linux) in background...")
 
 		for {
@@ -60,21 +60,5 @@ when ODIN_OS == .Linux {
 	}
 
 
-	lib_update :: proc(lib_counter: ^int, path: string, tmp_path: string) {
-		// Linux: load a copy so the build can overwrite lib.so
 
-		tmp := fmt.tprintf(path, lib_counter)
-		lib_counter^ += 1
-
-        // replace the whole read write file thing with just a copy command
-
-        os.copy_file("source.so", "dest.so")
-
-		fmt.println("library written successfully.")
-
-	}
-
-    lib_compile:: proc () {
-            //compile_command := fmt.tprintf("odin build hotcode/%v.odin -build-mode:dll -out:hotcode/%v -file", hl.name, hl.dirs[hl.idx])
-    }
 }

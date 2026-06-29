@@ -6,7 +6,7 @@ import "core:os"
 import "core:sys/windows"
  
 when ODIN_OS == .Windows {
-    watch_dir :: proc(path: string) {
+    platform_watch_dir :: proc(path: string) {
         dir_handle := windows.CreateFileA(
             raw_data(path),
             windows.FILE_LIST_DIRECTORY,

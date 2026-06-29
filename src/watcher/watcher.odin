@@ -1,5 +1,6 @@
 package watcher
 
+import "core:fmt"
 import "core:os"
 import "core:sys/linux"
 import "core:sys/windows"
@@ -16,7 +17,7 @@ Action :: enum {
 
 
 hot_reload :: proc(path: cstring, file_updated: ^bool) {
-    watch_dir(path, file_updated)
+    platform_watch_dir(path, file_updated)
 }
 
 lib_path_update :: proc (path, lib_name: string) {
@@ -25,6 +26,21 @@ lib_path_update :: proc (path, lib_name: string) {
     // Result: "./src/reloadable/lib.so"
 }
 
+    lib_update :: proc(lib_counter: ^int, path: string, tmp_path: string) {
+        // Linux: load a copy so the build can overwrite lib.so
+
+        //tmp := fmt.tprintf(path, lib_counter)
+        lib_counter^ += 1
+
+        os.copy_file("source.so", "dest.so")
+
+        fmt.println("library written successfully.")
+
+    }
 
 
+
+    lib_compile:: proc () {
+            //compile_command := fmt.tprintf("odin build hotcode/%v.odin -build-mode:dll -out:hotcode/%v -file", hl.name, hl.dirs[hl.idx])
+    }
 // Callback receives: action "Modified", "Created", "Deleted" and file name (just the name, not full path)
