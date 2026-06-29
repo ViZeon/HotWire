@@ -85,7 +85,7 @@ when ODIN_OS == .Linux {
 
         // replace the whole read write file thing with just a copy command
 
-
+        os.copy_file("source.so", "dest.so")
 
 		// Write the file (permissions: rw-r--r-- = 0o644)
 		err := os.write_entire_file("output.txt", data)
