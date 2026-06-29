@@ -63,36 +63,13 @@ when ODIN_OS == .Linux {
 	lib_update :: proc(lib_counter: ^int, path: string, tmp_path: string) {
 		// Linux: load a copy so the build can overwrite lib.so
 
-		tmp := fmt.tprintf("lib_{}.so", lib_counter)
+		tmp := fmt.tprintf(path, lib_counter)
 		lib_counter^ += 1
-
-		// 1. Read the entire file
-		data, ok := os.read_entire_file(path, context.allocator)
-		if ok != nil {
-			// handle the error, e.g., file not found
-			fmt.println("Failed to read library:",ok)
-			return
-		}
-		// 2. Ensure the memory is freed when the function returns
-		defer delete(data, context.allocator)
-
-		// 3. Use the file's contents (as a slice of bytes)
-		//    Convert to string if needed for text processing
-		content := string(data)
-		fmt.println(content)
-
-
 
         // replace the whole read write file thing with just a copy command
 
         os.copy_file("source.so", "dest.so")
 
-		// Write the file (permissions: rw-r--r-- = 0o644)
-		err := os.write_entire_file("output.txt", data)
-		if err != nil {
-			fmt.eprintln("Failed to write library:", err)
-			return
-		}
 		fmt.println("library written successfully.")
 
 	}

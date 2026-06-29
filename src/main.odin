@@ -3,17 +3,13 @@ package main
 import "watcher"
 import SDL "vendor:sdl3"
 
-import "core:dynlib"
+
 import "core:fmt"
 import "core:log"
-import "core:math"
+
 import "core:strings"
 import "core:sync"
 import "core:thread"
-
-import "core:os"
-import "core:sys/linux"
-import "core:sys/windows"
 
 main :: proc() {
 	context.logger = log.create_console_logger()
@@ -30,7 +26,7 @@ main :: proc() {
 
 	// 1. Create a wrapper procedure that matches what Odin's thread system expects
 	watcher_thread_proc :: proc(t: ^thread.Thread) {
-		watcher.watch_dir("./src/reloadable", &should_reload)
+		watcher.hot_reload("./src/reloadable", &should_reload)
 
 	}
 
