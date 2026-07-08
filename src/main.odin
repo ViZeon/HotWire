@@ -16,15 +16,17 @@ main :: proc() {
 	log.debug("Hello")
 
 
-
 	// 2. Create and start the background thread
 	t := thread.create(watcher_thread_proc)
 	if t != nil {
 		thread.start(t)
 	}
 
+	watched_path := "./src/reloadable"
+	hot_reload.start(&watched_path)
 
-    hot_reload.start("./src/reloadable")
+	// Later, from anywhere holding this pointer:
+	// watched_path = "./src/other_reloadable"
 
 	// 1. Create a wrapper procedure that matches what Odin's thread system expects
 	watcher_thread_proc :: proc(t: ^thread.Thread) {
@@ -36,16 +38,11 @@ main :: proc() {
 	SDLwindow()
 
 
-	if !load_library(&lib) {
-		log.panic("Failed to load initial library")
-	}
-
 	main_loop: for {
 		// Check for hot reload (main thread)
 		if sync.atomic_load(&should_reload) {
 			sync.atomic_store(&should_reload, false)
 			log.info("Hot reload triggered")
-			load_library(&lib)
 			lib.odin_online()
 		}
 
@@ -73,7 +70,6 @@ main :: proc() {
 // - make a function to execute build scripts, also split by OS
 
 // - usage should be one function supplying a pointer to the directory, should support sub-directories and multiples packages
-
 
 
 // - can now detect library name from folder name

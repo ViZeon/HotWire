@@ -12,33 +12,47 @@ RELOAD_ENTRY_PROC :: "odin_online"
 
 Reload_Entry_Proc :: proc()
 
-// The single line. Spawns a thread that owns everything from here:
-// build -> load -> call entry -> watch -> rebuild -> reload, forever.
-//
-// No package state. The only thing handed across the thread boundary
-// is the directory string itself, via poly data -- not a heap struct,
-// not a global. Everything else (lib name, output path, handle, entry
-// proc) is derived fresh from `path` or lives only as a local on the
-// thread's own stack for as long as that thread runs.
-start :: proc(path: string) {
+// The single line. The caller owns `path`. Writing a new string
+// into the pointed-to location at runtime is how the watched
+// directory gets changed -- hot_reload holds no state of its own
+// beyond reading this one pointer each cycle.
+start :: proc(path: ^string) {
 	thread.create_and_start_with_poly_data(path, run)
 }
 
-run :: proc(path: string) {
+run :: proc(path: ^string) {
 	handle: dynlib.Library
 	entry: Reload_Entry_Proc
+	current := path^
 
-	if !reload(path, &handle, &entry) {
-		log.error("hot_reload: initial build/load failed for", path)
+	if !reload(current, &handle, &entry) {
+		log.error("hot_reload: initial build/load failed for", current)
 		return
 	}
 	entry()
 
-	events_handle := events_os_open(path)
+	events_handle := events_os_open(current)
 	buffer: [4096]u8
 
 	for {
 		n := events_os_track(events_handle, buffer[:])
+
+		// TODO: events_os_track blocks until the OS reports a change
+		// in `current`'s directory, so a pointer swap is only
+		// noticed here -- i.e. whenever the *old* directory happens
+		// to get an fs event. Revisit with a timeout so this is
+		// responsive on its own, per the "modify later" call.
+		if path^ != current {
+			current = path^
+			events_handle = events_os_open(current) // TODO: old handle is never closed -- no events_os_close exists yet
+			if reload(current, &handle, &entry) {
+				entry()
+			} else {
+				log.error("hot_reload: build/load failed after directory change to", current)
+			}
+			continue
+		}
+
 		if n <= 0 do continue
 
 		offset := 0
@@ -53,7 +67,7 @@ run :: proc(path: string) {
 
 		if !changed do continue
 
-		if reload(path, &handle, &entry) {
+		if reload(current, &handle, &entry) {
 			entry()
 		} else {
 			log.error("hot_reload: rebuild/reload failed, keeping previous library running")

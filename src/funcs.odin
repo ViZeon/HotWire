@@ -114,30 +114,3 @@ SDLwindow :: proc() {
 
 
 
-// --- Library loading ---
-load_library :: proc(lib: ^Library) -> bool {
-	if lib.__handle != nil {
-		dynlib.unload_library(lib.__handle)
-		lib.__handle = nil
-	}
-
-	// IMPORTANT: On Linux you cannot overwrite a loaded .so.
-	// If your build writes directly to lib.so, copy it to a temp name first.
-	// For now we assume the build handles this, or you adjust the path.
-	handle, ok := dynlib.load_library("lib.so")
-	if !ok {
-		log.error("Failed to load library:", dynlib.last_error())
-		return false
-	}
-	lib.__handle = handle
-
-	sym, sym_ok := dynlib.symbol_address(handle, "odin_online")
-	if sym_ok {lib.odin_online = cast(proc())sym}
-
-	sym, sym_ok = dynlib.symbol_address(handle, "print_this")
-	if sym_ok {lib.print_this = cast(proc(_: string))sym}
-
-	log.info("Library loaded")
-	return true
-}
-

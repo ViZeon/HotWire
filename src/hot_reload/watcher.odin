@@ -15,12 +15,7 @@ Action :: enum {
     RenamedTo,
 }
 
-
-old_watch :: proc(path: string, file_updated: ^bool) {
-    lib_update(path)
-    //platform_watch_dir(path, file_updated)
-
-}
+/*
 
 watch :: proc(path: string, file_updated: ^bool) {
     handle := events_os_open(path)
@@ -40,11 +35,6 @@ watch :: proc(path: string, file_updated: ^bool) {
     }
 }
 
-lib_path_update :: proc(path, lib_name: string) {
-    // If watch_path is "./src/reloadable" and lib_name is "lib.so"
-    //full_path, err := filepath.join({path, lib_name, lib_extension()}, context.allocator)
-    // Result: "./src/reloadable/lib.so"
-}
 
 lib_update :: proc(
      /*lib_counter: ^int,*/path: string,
@@ -68,15 +58,7 @@ lib_update :: proc(
     fmt.println("Path read successfully.", full_path)
 
 }
-
-
-lib_compile :: proc() {
-    //compile_command := fmt.tprintf("odin build hotcode/%v.odin -build-mode:dll -out:hotcode/%v -file", hl.name, hl.dirs[hl.idx])
-    // replace that with the path you retrieve from the other func
-}
-// Callback receives: action "Modified", "Created", "Deleted" and file name (just the name, not full path)
-
-
+*/
 folder_name_last :: proc(path: string) -> string {
     // Strip trailing slashes so base() works correctly
     clean := strings.trim_right(path, "/\\")
