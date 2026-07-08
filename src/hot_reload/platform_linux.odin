@@ -1,67 +1,47 @@
 package hot_reload
 
 import "core:strings"
-import "core:fmt"
-import "core:os"
 import "core:sys/linux"
 
 when ODIN_OS == .Linux {
-	platform_watch_dir :: proc(path: string, file_updated: ^bool) {
+	Handle :: linux.Fd
+
+	IN_MODIFY     :: 0x00000002
+	IN_CREATE     :: 0x00000100
+	IN_DELETE     :: 0x00000200
+	IN_MOVED_FROM :: 0x00000040
+	IN_MOVED_TO   :: 0x00000080
+
+	events_os_open :: proc(path: string) -> Handle {
 		fd, _ := linux.inotify_init()
-		file_updated^ = false
-
-		IN_MODIFY :: 0x00000002
-		IN_CREATE :: 0x00000100
-		IN_DELETE :: 0x00000200
-
-		IN_MOVED_FROM :: 0x00000040
-		IN_MOVED_TO :: 0x00000080
-
 		mask := transmute(bit_set[linux.Inotify_Event_Bits;u32])(u32(
 				IN_CREATE | IN_DELETE | IN_MODIFY | IN_MOVED_FROM | IN_MOVED_TO,
 			))
 		linux.inotify_add_watch(fd, strings.clone_to_cstring(path), mask)
+		return fd
+	}
 
-		buffer: [dynamic]u8
-		fmt.println("Watching directory (Linux) in background...")
+	events_os_track :: proc(handle: Handle, buffer: []u8) -> int {
+		n, _ := linux.read(handle, buffer)
+		return int(n)
+	}
 
-		for {
-			n, _ := linux.read(fd, buffer[:])
-			if n <= 0 do continue
+	events_os_cast :: proc(buffer: []u8, offset: int) -> (Action, int) {
+		event := cast(^linux.Inotify_Event)&buffer[offset]
+		mask := u32(transmute(u32)event.mask)
 
-			// Parse the buffer
-			offset: u32 = 0
-			for offset < u32(n) {
-				// Cast the current position in the buffer to an Inotify_Event pointer
-				event := cast(^linux.Inotify_Event)&buffer[offset]
-
-				// Determine the action
-				action: Action
-				event_mask := u32(transmute(u32)event.mask)
-				switch {
-				case (event_mask & IN_MODIFY) != 0:     action = .Modified
-				case (event_mask & IN_CREATE) != 0:     action = .Created
-				case (event_mask & IN_DELETE) != 0:     action = .Deleted
-				case (event_mask & IN_MOVED_FROM) != 0: action = .RenamedFrom // or a new .Renamed
-				case (event_mask & IN_MOVED_TO) != 0:   action = .RenamedTo
-				}
-
-				// Extract the file name (if one exists)
-				if event.len > 0 {
-					// The name starts immediately after the struct
-					name_ptr := cast(cstring)&buffer[offset + size_of(linux.Inotify_Event)]
-					fmt.printf("[%s] %s\n", action, name_ptr)
-					file_updated^ = true
-				}
-
-				// Move to the next event in the buffer
-				offset += size_of(linux.Inotify_Event) + event.len
-			}
+		action: Action
+		switch {
+		case (mask & IN_MODIFY) != 0:     action = .Modified
+		case (mask & IN_CREATE) != 0:     action = .Created
+		case (mask & IN_DELETE) != 0:     action = .Deleted
+		case (mask & IN_MOVED_FROM) != 0: action = .RenamedFrom
+		case (mask & IN_MOVED_TO) != 0:   action = .RenamedTo
 		}
+
+		next_offset := offset + size_of(linux.Inotify_Event) + int(event.len)
+		return action, next_offset
 	}
 
-	lib_extension :: proc () -> string{
-		return ".so"
-	}
-
+	lib_extension :: proc() -> string { return ".so" }
 }

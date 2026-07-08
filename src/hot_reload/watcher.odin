@@ -16,13 +16,28 @@ Action :: enum {
 }
 
 
-watch :: proc(path: string, file_updated: ^bool) {
+old_watch :: proc(path: string, file_updated: ^bool) {
 	lib_update(path)
-	platform_watch_dir(path, file_updated)
+	//platform_watch_dir(path, file_updated)
 
 }
-watch_list :: proc() {
 
+watch :: proc(path: string, file_updated: ^bool) {
+	handle := events_os_open(path)
+	buffer: [4096]u8
+
+	for {
+		n := events_os_track(handle, buffer[:])
+		if n <= 0 do continue
+
+		offset := 0
+		for offset < n {
+			action, next_offset := events_os_cast(buffer[:], offset)
+			if next_offset == offset do break // Windows sentinel: no more records
+			offset = next_offset
+			file_updated^ = true
+		}
+	}
 }
 
 lib_path_update :: proc(path, lib_name: string) {
