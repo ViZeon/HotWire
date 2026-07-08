@@ -33,8 +33,7 @@ main :: proc() {
 
 	SDLwindow()
 
-	// Load initial library
-	lib: Library
+
 	if !load_library(&lib) {
 		log.panic("Failed to load initial library")
 	}
