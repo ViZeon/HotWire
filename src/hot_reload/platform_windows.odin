@@ -23,8 +23,7 @@ when ODIN_OS == .Windows {
         return int(bytes_returned)
     }
 
-    // Now returns the filename as well
-    events_os_cast :: proc(buffer: []u8, offset: int) -> (Action, string, int) {
+    events_os_cast :: proc(buffer: []u8, offset: int) -> (Action, int) {
         info := cast(^windows.FILE_NOTIFY_INFORMATION)&buffer[offset]
 
         action: Action
@@ -36,11 +35,9 @@ when ODIN_OS == .Windows {
         case windows.FILE_ACTION_RENAMED_NEW_NAME: action = .RenamedTo
         }
 
-        name := windows.utf16_to_utf8(info.FileName[: info.FileNameLength / 2])
-
         next_offset := offset
         if info.NextEntryOffset != 0 do next_offset = offset + int(info.NextEntryOffset)
-        return action, name, next_offset
+        return action, next_offset
     }
 
     lib_extension :: proc() -> string { return ".dll" }

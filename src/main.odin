@@ -24,7 +24,7 @@ main :: proc() {
 	}
 
 
-    hot_reload.watch("./src/reloadable")
+    hot_reload.start("./src/reloadable")
 
 	// 1. Create a wrapper procedure that matches what Odin's thread system expects
 	watcher_thread_proc :: proc(t: ^thread.Thread) {
