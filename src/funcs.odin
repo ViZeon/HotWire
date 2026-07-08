@@ -142,27 +142,6 @@ load_library :: proc(lib: ^Library) -> bool {
 }
 
 watcher_load_lib :: proc () {
-	for {
-        // Check for hot reload (main thread)
-        if sync.atomic_load(&should_reload) {
-            sync.atomic_store(&should_reload, false)
-            log.info("Hot reload triggered")
-            
-            // Pass the path and the pointer to the dynlib handle.
-            // hot_reload will compile, unload the old one, and load the new one.
-            hot_reload.lib_update("./src/reloadable", &lib.__handle)
-            
-            // Now re-fetch your symbols manually (until we solve the symbol can of worms)
-            if lib.__handle != nil {
-                sym, ok := dynlib.symbol_address(lib.__handle, "odin_online")
-                if ok { lib.odin_online = cast(proc())sym }
-                
-                sym2, ok2 := dynlib.symbol_address(lib.__handle, "print_this")
-                if ok2 { lib.print_this = cast(proc(_: string))sym2 }
-            }
-
-            if lib.odin_online != nil do lib.odin_online()
-        }
-
-	}
+	// Just point at the folder and pass the optional library handle.
+	hot_reload.watch("./src/reloadable", &lib.__handle)
 }

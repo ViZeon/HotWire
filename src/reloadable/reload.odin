@@ -5,7 +5,7 @@ import "core:fmt"
 @(export)
 odin_online :: proc()
 {
-	fmt.println("Odin's Online, Reloaded Bitch WTF" )
+	fmt.println("Odin's Online, Reloaded" )
 }
 @export
 print_this :: proc (this : string) {
