@@ -141,7 +141,3 @@ load_library :: proc(lib: ^Library) -> bool {
 	return true
 }
 
-watcher_load_lib :: proc () {
-	// Just point at the folder and pass the optional library handle.
-	hot_reload.watch("./src/reloadable", &lib.__handle)
-}
