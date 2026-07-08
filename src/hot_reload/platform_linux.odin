@@ -26,7 +26,8 @@ when ODIN_OS == .Linux {
         return int(n)
     }
 
-    events_os_cast :: proc(buffer: []u8, offset: int) -> (Action, int) {
+    // Now returns the filename as well
+    events_os_cast :: proc(buffer: []u8, offset: int) -> (Action, string, int) {
         event := cast(^linux.Inotify_Event)&buffer[offset]
         mask := u32(transmute(u32)event.mask)
 
@@ -39,8 +40,13 @@ when ODIN_OS == .Linux {
         case (mask & IN_MOVED_TO) != 0:   action = .RenamedTo
         }
 
+        name: string
+        if event.len > 0 {
+            name = string(cstring(&buffer[offset + size_of(linux.Inotify_Event)]))
+        }
+
         next_offset := offset + size_of(linux.Inotify_Event) + int(event.len)
-        return action, next_offset
+        return action, name, next_offset
     }
 
     lib_extension :: proc() -> string { return ".so" }
