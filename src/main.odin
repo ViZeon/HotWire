@@ -40,11 +40,12 @@ main :: proc() {
 
 	main_loop: for {
 		// Check for hot reload (main thread)
-		if sync.atomic_load(&should_reload) {
+		/*if sync.atomic_load(&should_reload) {
 			sync.atomic_store(&should_reload, false)
 			log.info("Hot reload triggered")
 			lib.odin_online()
 		}
+		*/
 
 		ev: SDL.Event
 		for SDL.PollEvent(&ev) {
