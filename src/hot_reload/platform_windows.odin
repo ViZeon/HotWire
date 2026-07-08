@@ -66,4 +66,7 @@ when ODIN_OS == .Windows {
             }
         }
     }
+    lib_extension :: proc () -> string{
+    return ".dll"
+}
 }

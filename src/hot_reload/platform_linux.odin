@@ -60,8 +60,8 @@ when ODIN_OS == .Linux {
 		}
 	}
 
-lib_extension :: proc () -> string{
-	return ".so"
-}
+	lib_extension :: proc () -> string{
+		return ".so"
+	}
 
 }
